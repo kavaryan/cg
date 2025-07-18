@@ -4,9 +4,11 @@ from mcts.algorithm import MCTSAlgorithm
 class TrueMCTSDebater(BaseDebater):
     """True MCTS algorithm debater implementation"""
     
-    def __init__(self, side: str, motion: str):
+    def __init__(self, side: str, motion: str, iterations: int = None):
         super().__init__(side, motion)
-        self.mcts_algorithm = MCTSAlgorithm(side, motion)
+        from config.settings import MCTS_ITERATIONS
+        iters = iterations if iterations is not None else MCTS_ITERATIONS
+        self.mcts_algorithm = MCTSAlgorithm(side, motion, iterations=iters)
     
     def __call__(self, hist, turn):
         try:
