@@ -4,7 +4,7 @@
 by [Kaveh Aryan](mailto:kaveh.aryan@kcl.ac.uk) and [Mudit Jain](mudit.jain2303@gmail.com)
 
 Original paper: 📚 [arXiv:2501.18455](https://arxiv.org/abs/2501.18455),
-Latest version: 📚 [View on GitHub](https://github.com/kavaryan/cg/blob/master/paper/2501.18455.pdf) 
+Latest version: 📚 [View on GitHub](https://github.com/kavaryan/cg/blob/master/paper/cg_latest_version.pdf) 
 
 ⚠️ **This is a work in progress. Expect changes and incomplete features.**
 
