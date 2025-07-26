@@ -1,29 +1,24 @@
 # Conversation Games
-# Debate Tournament
-
-**Based on the paper**:  
+**Code for the paper**:  
 📄 _Conversation Games and a Strategic View of the Turing Test_  
-by [Kaveh Aryan] and [Mudit Jain]
-📚 [arXiv:2501.18455](https://arxiv.org/abs/2501.18455)
+by [Kaveh Aryan](mailto:kaveh.aryan@kcl.ac.uk) and [Mudit Jain](mudit.jain2303@gmail.com)
+
+Original paper: 📚 [arXiv:2501.18455](https://arxiv.org/abs/2501.18455),
+Latest version: 📚 [View on GitHub](https://github.com/kavaryan/cg/blob/master/paper/2501.18455.pdf) 
 
 ⚠️ **This is a work in progress. Expect changes and incomplete features.**
 
-This project implements a framework for running AI debate tournaments, inspired by a game-theoretic interpretation of the Turing Test. Different types of debaters—ranging from simple heuristics to advanced Monte Carlo Tree Search (MCTS) agents—compete over debate motions. The goal is to simulate and study strategic conversation behavior in adversarial settings.
+## Debate Tournament
+This code implements a framework for running AI debate tournaments, as described in the paper. Different types of debaters—ranging from simple heuristics to advanced Monte Carlo Tree Search (MCTS) agents—compete over debate motions. The goal is to simulate and study strategic conversation behavior in adversarial settings.
 
----
-# Debate Tournament
-
-This project implements a debate tournament framework where different types of debaters compete on various motions. It supports multiple debater strategies including baseline, prompt-based MCTS, and true MCTS algorithm-based debaters.
-
-## Installation
-
+### Installation
 Ensure you have Python installed (recommended Python 3.7+). Install the required dependencies using:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+### Usage
 
 Run the tournament using the main script with configurable parameters:
 
@@ -40,23 +35,23 @@ python main.py [--debate-prompt-file FILE] [--debater1-type TYPE] [--debater1-ma
 - `--debater2-max-depth`: Max depth or iterations for debater 2 (optional).
 - `--output`: Output file to store tournament results (optional).
 
-## Main Components
+### Main Components
 
-### TournamentRunner
+##### TournamentRunner
 
 Manages and runs the debate tournament. It creates debaters based on specified types, runs multiple matches for each motion, collects results, and prints win-rate summaries.
 
-### Debaters
+##### Debaters
 
 - **BaselineDebater**: A simple baseline debater.
 - **PromptMCTSDebater**: Uses prompt-based Monte Carlo Tree Search.
 - **TrueMCTSDebater**: Uses a true MCTS algorithm for debating, leveraging the `MCTSAlgorithm` class.
 
-### MCTS Algorithm
+##### MCTS Algorithm
 
 The Monte Carlo Tree Search (MCTS) algorithm is used by some debaters to simulate and evaluate debate moves, improving decision-making during debates.
 
-## Example
+### Example
 
 Run a tournament with a true MCTS debater against a baseline debater:
 
@@ -64,13 +59,13 @@ Run a tournament with a true MCTS debater against a baseline debater:
 python main.py --debater1-type true-mcts --debater2-type baseline --output results.txt
 ```
 
-## Output
+### Output
 
 The tournament prints win-rate summaries for each motion and debater pairing. If an output file is specified, results are saved there.
 
 Additionally, a sample debate is run and displayed after the tournament.
 
-## Configuration
+### Configuration
 
 MCTS parameters such as iterations, exploration constant, and rollout depth are printed at runtime for reference.
 
