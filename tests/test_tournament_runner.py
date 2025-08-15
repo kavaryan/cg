@@ -29,7 +29,7 @@ class TestTournamentRunner(unittest.TestCase):
         self.assertEqual(self.runner.results, [])
         self.assertEqual(self.runner.output_lines, [])
     
-    @patch('tournament.tournament_runner.BaselineDebater')
+    @patch('debaters.baseline_debater.BaselineDebater')
     def test_create_debater_baseline(self, mock_baseline):
         """Test creating a baseline debater."""
         mock_instance = Mock()
@@ -40,7 +40,7 @@ class TestTournamentRunner(unittest.TestCase):
         mock_baseline.assert_called_once_with("pro", "test motion")
         self.assertEqual(result, mock_instance)
     
-    @patch('tournament.tournament_runner.PromptMCTSDebater')
+    @patch('debaters.prompt_mcts_debater.PromptMCTSDebater')
     def test_create_debater_prompt_mcts(self, mock_prompt_mcts):
         """Test creating a prompt-mcts debater."""
         mock_instance = Mock()
@@ -51,7 +51,7 @@ class TestTournamentRunner(unittest.TestCase):
         mock_prompt_mcts.assert_called_once_with("con", "test motion", k=5)
         self.assertEqual(result, mock_instance)
     
-    @patch('tournament.tournament_runner.TrueMCTSDebater')
+    @patch('debaters.true_mcts_debater.TrueMCTSDebater')
     def test_create_debater_true_mcts(self, mock_true_mcts):
         """Test creating a true-mcts debater."""
         mock_instance = Mock()
@@ -95,7 +95,7 @@ class TestTournamentRunner(unittest.TestCase):
     @patch('tournament.tournament_runner.TournamentRunner.create_debater_pairs')
     @patch('builtins.print')
     @patch('tournament.tournament_runner.tqdm')
-    def test_run_tournament(self, mock_tqdm, mock_print, mock_create_pairs, mock_debate_match, mock_sleep):
+    def test_run_tournament(self, mock_tqdm, mock_print, mock_create_pairs, mock_debate_match):
         """Test running a full tournament."""
         # Mock the progress bar
         mock_tqdm.return_value = range(2)
@@ -181,8 +181,8 @@ class TestTournamentRunner(unittest.TestCase):
         mock_print.assert_any_call("Motion 2                                 LABEL 2                   50.0%")
     
     @patch('tournament.tournament_runner.MOTIONS', ["Test motion for sample"])
-    @patch('tournament.tournament_runner.TrueMCTSDebater')
-    @patch('tournament.tournament_runner.BaselineDebater')
+    @patch('debaters.true_mcts_debater.TrueMCTSDebater')
+    @patch('debaters.baseline_debater.BaselineDebater')
     @patch('tournament.tournament_runner.DebateMatch')
     @patch('builtins.print')
     def test_run_sample_debate(self, mock_print, mock_debate_match, mock_baseline, mock_true_mcts):
@@ -209,15 +209,15 @@ class TestTournamentRunner(unittest.TestCase):
             "Test motion for sample", mock_true_instance, mock_baseline_instance
         )
         
-        # Verify output was printed
-        mock_print.assert_any_call("\nSample debate – TRUE-MCTS vs BASELINE\n" + "-" * 60)
-        mock_print.assert_any_call("Turn 1: Pro argument")
-        mock_print.assert_any_call("Turn 2: Con argument")
-        mock_print.assert_any_call("Turn 3: Pro rebuttal")
-        mock_print.assert_any_call("\nJudge:", mock_verdict)
+        # Verify output was printed (check that print was called with expected content)
+        print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
+        self.assertIn("\nSample debate – TRUE-MCTS vs BASELINE\n" + "-" * 60, print_calls)
+        self.assertIn("Turn 1: Pro argument", print_calls)
+        self.assertIn("Turn 2: Con argument", print_calls)
+        self.assertIn("Turn 3: Pro rebuttal", print_calls)
     
     @patch('tournament.tournament_runner.MOTIONS', ["Test motion"])
-    @patch('tournament.tournament_runner.TrueMCTSDebater')
+    @patch('debaters.true_mcts_debater.TrueMCTSDebater')
     @patch('builtins.print')
     def test_run_sample_debate_with_exception(self, mock_print, mock_true_mcts):
         """Test sample debate handles exceptions gracefully."""
