@@ -1,16 +1,16 @@
 import asyncio
 import litellm
-from config.settings import API_KEY, MODEL_NAME
 
 class APIClient:
-    def __init__(self):
+    def __init__(self, api_key: str, model_name: str):
         # Set the API key for litellm
-        litellm.api_key = API_KEY
-    
+        litellm.api_key = api_key
+        self.model_name = model_name
+
     async def gchat(self, messages, temp=0.8, max_tok=256):
         try:
             rsp = await litellm.acompletion(
-                model=f"groq/{MODEL_NAME}",
+                model=f"groq/{self.model_name}",
                 messages=messages,
                 temperature=temp,
                 max_tokens=max_tok,

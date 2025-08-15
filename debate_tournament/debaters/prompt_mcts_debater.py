@@ -2,12 +2,11 @@ from debaters.base_debater import BaseDebater
 from utils.prompts import debater_prompt
 from utils.scoring import score_sentence
 from core.api_client import api_client
-from config.settings import SEARCH_K
 
 class PromptMCTSDebater(BaseDebater):
     """Prompt-based MCTS debater implementation"""
     
-    def __init__(self, side: str, motion: str, k: int = SEARCH_K):
+    def __init__(self, side: str, motion: str, k: int = 3):
         super().__init__(side, motion)
         self.k = k
     

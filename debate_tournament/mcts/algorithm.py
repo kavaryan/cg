@@ -4,15 +4,17 @@ from mcts.node import MCTSNode
 from utils.prompts import debater_prompt
 from utils.scoring import score_sentence
 from core.api_client import api_client
-from config.settings import MCTS_ITERATIONS, MAX_ROLLOUT_DEPTH
 
 class MCTSAlgorithm:
     """True MCTS algorithm implementation for debate"""
 
-    def __init__(self, side: str, motion: str, iterations: int = MCTS_ITERATIONS):
+    def __init__(self, side: str, motion: str,
+            iterations: int = 20, max_rollout_depth: int = 4, exploration_constant: float = 1.414):
         self.side = side
         self.motion = motion
         self.iterations = iterations
+        self.max_rollout_depth = max_rollout_depth
+        self.exploration_constant = exploration_constant
 
     def generate_candidate_actions(self, state: List[str], num_candidates: int = 3) -> List[str]:
         """Generate candidate debate responses"""
@@ -65,7 +67,7 @@ class MCTSAlgorithm:
 
     def simulate_random_playout(self, state: List[str], current_side: str, depth: int = 0) -> float:
         """Simulate a random playout from the current state"""
-        if depth >= MAX_ROLLOUT_DEPTH or len(state) >= 6:
+        if depth >= self.max_rollout_depth or len(state) >= 6:
             return self.evaluate_state(state)
 
         try:
@@ -87,7 +89,7 @@ class MCTSAlgorithm:
         """Selection phase: traverse tree using UCB1"""
         current = node
         while current is not None and not current.is_terminal and current.is_fully_expanded():
-            best_child = current.best_child()
+            best_child = current.best_child(self.exploration_constant)
             if best_child is None:
                 break
             current = best_child

@@ -4,14 +4,14 @@ from debaters.baseline_debater import BaselineDebater
 from debaters.prompt_mcts_debater import PromptMCTSDebater
 from debaters.true_mcts_debater import TrueMCTSDebater
 from tournament.match import DebateMatch
-from config.settings import MOTIONS, NUM_MATCHES, SLEEP_SEC
 
 class TournamentRunner:
     """Manages and runs the debate tournament"""
 
-    def __init__(self, debater1_type="true-mcts", debater1_max_depth=None,
+    def __init__(self, motions, debater1_type="true-mcts", debater1_max_depth=None,
                  debater2_type="baseline", debater2_max_depth=None,
                  debate_prompt_file=None, output_file=None):
+        self.motions = motions
         self.results = []
         self.debater1_type = debater1_type
         self.debater1_max_depth = debater1_max_depth
@@ -46,26 +46,26 @@ class TournamentRunner:
             (f"{self.debater1_type.upper()} vs {self.debater2_type.upper()}", base_pro, base_con),
         ]
 
-    def run_tournament(self):
+    def run_tournament(self, num_matches: int = 6, sleep_sec: float = 2.0):
         """Execute the full tournament"""
-        for motion in MOTIONS:
+        for motion in self.motions:
             pairs = self.create_debater_pairs(motion)
 
             for label, pro_debater, con_debater in pairs:
                 wins = 0
-                print(f"{motion[:38]}… | {label} | {NUM_MATCHES} debates")
+                print(f"{motion[:38]}… | {label} | {num_matches} debates")
 
-                for i in tqdm(range(NUM_MATCHES), leave=False):
+                for i in tqdm(range(num_matches), leave=False):
                     try:
                         verdict, _ = DebateMatch.play(motion, pro_debater, con_debater)
                         wins += (verdict["winner"] == "A")
-                        time.sleep(SLEEP_SEC)
+                        time.sleep(sleep_sec)
                     except Exception as e:
                         print(f"Match {i} error: {e}")
                         continue
 
-                self.results.append((motion[:38] + "…" * (len(motion) > 38), label, wins / NUM_MATCHES))
-                self.output_lines.append(f"{motion[:38]}… | {label} | {wins / NUM_MATCHES:.2%}")
+                self.results.append((motion[:38] + "…" * (len(motion) > 38), label, wins / num_matches))
+                self.output_lines.append(f"{motion[:38]}… | {label} | {wins / num_matches:.2%}")
 
         if self.output_file:
             with open(self.output_file, "w") as f:
@@ -81,9 +81,9 @@ class TournamentRunner:
         """Run and display a sample debate"""
         print("\nSample debate – TRUE-MCTS vs BASELINE\n" + "-" * 60)
         try:
-            true_mcts_debater = TrueMCTSDebater("pro", MOTIONS[0])
-            baseline_debater = BaselineDebater("con", MOTIONS[0])
-            verdict, sample_log = DebateMatch.play(MOTIONS[0], true_mcts_debater, baseline_debater)
+            true_mcts_debater = TrueMCTSDebater("pro", self.motions[0])
+            baseline_debater = BaselineDebater("con", self.motions[0])
+            verdict, sample_log = DebateMatch.play(self.motions[0], true_mcts_debater, baseline_debater)
             print("\n".join(sample_log))
             print("\nJudge:", verdict)
         except Exception as e:

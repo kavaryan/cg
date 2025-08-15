@@ -1,7 +1,6 @@
 import math
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
-from config.settings import EXPLORATION_CONSTANT
 
 @dataclass
 class MCTSNode:
@@ -22,7 +21,7 @@ class MCTSNode:
             return False
         return len(self.untried_actions) == 0
 
-    def best_child(self, exploration_weight: float = EXPLORATION_CONSTANT) -> Optional['MCTSNode']:
+    def best_child(self, exploration_weight: float) -> Optional['MCTSNode']:
         """Select best child using UCB1 formula"""
         if not self.children:
             return None

@@ -1,8 +1,19 @@
 import random
-import nest_asyncio
+
+try:
+    import nest_asyncio
+    nest_asyncio.apply()
+except ImportError:
+    print("nest_asyncio is not installed. Some async operations may not work as expected.")
+    pass
+
 import argparse
-from config.settings import setup_environment, MCTS_ITERATIONS, EXPLORATION_CONSTANT, MAX_ROLLOUT_DEPTH
 from tournament.tournament_runner import TournamentRunner
+
+MCTS_ITERATIONS = 20
+EXPLORATION_CONSTANT = 1.414
+MAX_ROLLOUT_DEPTH = 4
+MCTS_TEMP = 1.0
 
 def main():
     parser = argparse.ArgumentParser(description="Run debate tournament with configurable parameters.")
@@ -15,9 +26,10 @@ def main():
     args = parser.parse_args()
 
     # Setup
-    nest_asyncio.apply()
+    
     random.seed(42)
-    setup_environment()
+    # setup_environment()
+    
 
     # Run tournament with passed arguments
     tournament = TournamentRunner(
