@@ -1,15 +1,16 @@
 import asyncio
-from groq import AsyncGroq
+import litellm
 from config.settings import API_KEY, MODEL_NAME
 
 class APIClient:
     def __init__(self):
-        self.client = AsyncGroq(api_key=API_KEY)
+        # Set the API key for litellm
+        litellm.api_key = API_KEY
     
     async def gchat(self, messages, temp=0.8, max_tok=256):
         try:
-            rsp = await self.client.chat.completions.create(
-                model=MODEL_NAME,
+            rsp = await litellm.acompletion(
+                model=f"groq/{MODEL_NAME}",
                 messages=messages,
                 temperature=temp,
                 max_tokens=max_tok,
