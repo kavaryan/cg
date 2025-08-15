@@ -209,9 +209,10 @@ class TestTournamentRunner(unittest.TestCase):
         # Verify output was printed (check that print was called with expected content)
         print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
         self.assertIn("\nSample debate – TRUE-MCTS vs BASELINE\n" + "-" * 60, print_calls)
-        self.assertIn("Turn 1: Pro argument", print_calls)
-        self.assertIn("Turn 2: Con argument", print_calls)
-        self.assertIn("Turn 3: Pro rebuttal", print_calls)
+        
+        # The log entries are printed as a single string with newlines
+        log_output = "Turn 1: Pro argument\nTurn 2: Con argument\nTurn 3: Pro rebuttal"
+        self.assertIn(log_output, print_calls)
     
     @patch('tournament.tournament_runner.MOTIONS', ["Test motion"])
     @patch('tournament.tournament_runner.TrueMCTSDebater')
