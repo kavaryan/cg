@@ -30,9 +30,17 @@ def main():
     random.seed(42)
     # setup_environment()
     
+    # Define debate motions
+    motions = [
+        "This house believes that artificial intelligence will do more harm than good",
+        "This house believes that social media has a net negative impact on society",
+        "This house believes that remote work is better than office work",
+        "This house believes that nuclear energy is the best solution to climate change"
+    ]
 
     # Run tournament with passed arguments
     tournament = TournamentRunner(
+        motions,
         debater1_type=args.debater1_type,
         debater1_max_depth=args.debater1_max_depth,
         debater2_type=args.debater2_type,
