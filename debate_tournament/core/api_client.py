@@ -1,4 +1,5 @@
 import asyncio
+import os
 import litellm
 
 class APIClient:
@@ -24,4 +25,4 @@ class APIClient:
         return asyncio.get_event_loop().run_until_complete(coro)
 
 # Global instance
-api_client = APIClient()
+api_client = APIClient(os.environ.get("GROQ_API_KEY"), "qwen/qwen3-32b")
