@@ -191,6 +191,8 @@ class MCTSAlgorithm:
             print(f"Motion: {self.motion}")
             print(f"Current state: {len(root_state)} moves")
             print(f"Iterations: {self.iterations}")
+            print(f"Max rollout depth: {self.max_rollout_depth}")
+            print(f"Exploration constant: {self.exploration_constant}")
             print("-" * 50)
         
         try:
@@ -218,7 +220,7 @@ class MCTSAlgorithm:
 
                     reward = self.simulate(leaf)
                     if self.dry_run:
-                        print(f"  Simulation reward: {reward:.3f}")
+                        print(f"  Simulation reward: {reward:.3f} (max depth: {self.max_rollout_depth})")
                     
                     if leaf is not None:
                         self.backpropagate(leaf, reward)
