@@ -54,6 +54,11 @@ class MCTSAlgorithm:
         if len(state) == 0:
             return 0.0
 
+        if self.dry_run:
+            # Return mock evaluation for dry-run mode
+            import random
+            return random.uniform(-0.5, 0.5)
+
         try:
             if len(state) > 0:
                 last_statement = state[-1]
