@@ -9,12 +9,14 @@ class MCTSAlgorithm:
     """True MCTS algorithm implementation for debate"""
 
     def __init__(self, side: str, motion: str,
-            iterations: int = 20, max_rollout_depth: int = 4, exploration_constant: float = 1.414):
+            iterations: int = 20, max_rollout_depth: int = 4, exploration_constant: float = 1.414, dry_run: bool = False):
         self.side = side
         self.motion = motion
         self.iterations = iterations
         self.max_rollout_depth = max_rollout_depth
         self.exploration_constant = exploration_constant
+        self.dry_run = dry_run
+        self.tree_log = []
 
     def generate_candidate_actions(self, state: List[str], num_candidates: int = 3) -> List[str]:
         """Generate candidate debate responses"""
@@ -130,8 +132,40 @@ class MCTSAlgorithm:
         """Backpropagation phase: update node values"""
         node.update(reward)
 
+    def print_tree_structure(self, node: MCTSNode, prefix: str = "", is_last: bool = True, depth: int = 0):
+        """Print the MCTS tree structure with numbered nodes"""
+        if depth > 3:  # Limit depth for readability
+            return
+            
+        # Create the tree visualization
+        connector = "└── " if is_last else "├── "
+        node_info = f"visits={node.visits}, value={node.value:.3f}"
+        
+        if hasattr(node, 'action') and node.action:
+            action_preview = node.action[:30] + "..." if len(node.action) > 30 else node.action
+            print(f"{prefix}{connector}[{node_info}] \"{action_preview}\"")
+        else:
+            print(f"{prefix}{connector}[ROOT] {node_info}")
+        
+        # Prepare prefix for children
+        child_prefix = prefix + ("    " if is_last else "│   ")
+        
+        # Print children
+        children_list = list(node.children.items())
+        for i, (action, child) in enumerate(children_list):
+            child.action = action  # Store action for display
+            is_last_child = (i == len(children_list) - 1)
+            self.print_tree_structure(child, child_prefix, is_last_child, depth + 1)
+
     def search(self, root_state: List[str]) -> str:
         """Main MCTS search algorithm"""
+        if self.dry_run:
+            print(f"\n=== DRY-RUN MCTS SEARCH ({self.side.upper()}) ===")
+            print(f"Motion: {self.motion}")
+            print(f"Current state: {len(root_state)} moves")
+            print(f"Iterations: {self.iterations}")
+            print("-" * 50)
+        
         try:
             root = MCTSNode(
                 state=root_state,
@@ -141,33 +175,66 @@ class MCTSAlgorithm:
 
             for iteration in range(self.iterations):
                 try:
+                    if self.dry_run:
+                        print(f"\nIteration {iteration + 1}:")
+                    
                     leaf = self.select(root)
                     if leaf is None:
                         leaf = root
 
                     if not leaf.is_terminal and len(leaf.state) < 6:
                         leaf = self.expand(leaf)
+                        if self.dry_run:
+                            print(f"  Expanded node with {len(leaf.children)} children")
 
                     reward = self.simulate(leaf)
+                    if self.dry_run:
+                        print(f"  Simulation reward: {reward:.3f}")
+                    
                     self.backpropagate(leaf, reward)
 
                 except Exception as e:
-                    print(f"MCTS iteration {iteration} error: {e}")
+                    if self.dry_run:
+                        print(f"  Error in iteration {iteration}: {e}")
+                    else:
+                        print(f"MCTS iteration {iteration} error: {e}")
                     continue
+
+            if self.dry_run:
+                print(f"\n=== FINAL MCTS TREE ===")
+                self.print_tree_structure(root)
+                print(f"\n=== TREE STATISTICS ===")
+                print(f"Root visits: {root.visits}")
+                print(f"Root children: {len(root.children)}")
+                if root.children:
+                    best_child = max(root.children.values(), key=lambda c: c.visits)
+                    print(f"Best child visits: {best_child.visits}")
+                    print(f"Best child value: {best_child.value:.3f}")
 
             if not root.children:
                 candidates = self.generate_candidate_actions(root_state, 1)
-                return candidates[0] if candidates else "I maintain my position on this important issue."
+                result = candidates[0] if candidates else "I maintain my position on this important issue."
+                if self.dry_run:
+                    print(f"\nSelected action (no children): {result}")
+                return result
 
             best_child = max(root.children.values(), key=lambda c: c.visits)
             for action, child in root.children.items():
                 if child == best_child:
+                    if self.dry_run:
+                        print(f"\nSelected action: {action}")
                     return action
 
-            return list(root.children.keys())[0]
+            result = list(root.children.keys())[0]
+            if self.dry_run:
+                print(f"\nSelected action (fallback): {result}")
+            return result
 
         except Exception as e:
-            print(f"MCTS search error: {e}")
+            if self.dry_run:
+                print(f"MCTS search error: {e}")
+            else:
+                print(f"MCTS search error: {e}")
             try:
                 candidates = self.generate_candidate_actions(root_state, 1)
                 return candidates[0] if candidates else "I maintain my position on this important issue."

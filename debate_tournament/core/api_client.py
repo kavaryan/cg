@@ -3,12 +3,30 @@ import os
 import litellm
 
 class APIClient:
-    def __init__(self, api_key: str, model_name: str):
+    def __init__(self, api_key: str, model_name: str, dry_run: bool = False):
         # Set the API key for litellm
         litellm.api_key = api_key
         self.model_name = model_name
+        self.dry_run = dry_run
+        self._mock_responses = [
+            "I believe this argument has strong merit.",
+            "The evidence clearly supports this position.",
+            "This perspective overlooks key considerations.",
+            "The data demonstrates significant benefits.",
+            "There are important counterarguments to consider.",
+            "This approach offers the most practical solution.",
+            "The research indicates substantial risks.",
+            "This viewpoint fails to address core issues."
+        ]
+        self._response_counter = 0
 
     async def gchat(self, messages, temp=0.8, max_tok=256):
+        if self.dry_run:
+            # Return mock response for dry-run mode
+            response = self._mock_responses[self._response_counter % len(self._mock_responses)]
+            self._response_counter += 1
+            return response
+            
         try:
             rsp = await litellm.acompletion(
                 model=f"groq/{self.model_name}",
@@ -24,5 +42,10 @@ class APIClient:
     def run(self, coro):
         return asyncio.get_event_loop().run_until_complete(coro)
 
-# Global instance
+# Global instance - will be reconfigured in main based on dry_run flag
 api_client = APIClient(os.environ.get("GROQ_API_KEY"), "qwen/qwen3-32b")
+
+def configure_api_client(dry_run: bool = False):
+    """Reconfigure the global API client for dry-run mode"""
+    global api_client
+    api_client = APIClient(os.environ.get("GROQ_API_KEY"), "qwen/qwen3-32b", dry_run=dry_run)
