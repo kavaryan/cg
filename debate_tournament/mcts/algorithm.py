@@ -120,7 +120,9 @@ class MCTSAlgorithm:
     def expand(self, node: MCTSNode) -> MCTSNode:
         """Expansion phase: add new child node"""
         # Allow deeper expansion during search phase - don't limit by max_debate_depth here
-        if node.is_terminal:
+        # Only stop expansion if we've reached a very deep level to prevent infinite expansion
+        if node.is_terminal or len(node.state) >= 50:  # Much higher limit for search
+            node.is_terminal = True
             return node
 
         # Generate actions if we haven't yet
@@ -162,7 +164,7 @@ class MCTSAlgorithm:
 
     def print_tree_structure(self, node: MCTSNode, prefix: str = "", is_last: bool = True, depth: int = 0):
         """Print the MCTS tree structure with numbered nodes"""
-        if depth > 10:  # Limit depth for readability - show deeper trees
+        if depth > 15:  # Show even deeper trees to see the full exploration
             return
             
         # Create the tree visualization

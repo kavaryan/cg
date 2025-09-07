@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--debater2-iterations", type=int, default=MCTS_ITERATIONS, help="Number of MCTS iterations for debater 2")
     parser.add_argument("--debater2-max-rollout-depth", type=int, default=MAX_ROLLOUT_DEPTH, help="Max rollout depth for debater 2 MCTS simulations")
     parser.add_argument("--max-debate-depth", type=int, default=6, help="Maximum number of moves in a debate")
+    parser.add_argument("--max-turns", type=int, default=None, help="Limit debate to this many turns per debater (for testing)")
     parser.add_argument("--output", type=str, default=None, help="Output file to store results")
     parser.add_argument("--dry-run", action="store_true", help="Run in dry-run mode with MCTS tree visualization (no LLM calls)")
     args = parser.parse_args()
@@ -51,7 +52,7 @@ def main():
         debater2_type=args.debater2_type,
         debater2_iterations=args.debater2_iterations,
         debater2_max_rollout_depth=args.debater2_max_rollout_depth,
-        max_debate_depth=args.max_debate_depth,
+        max_debate_depth=args.max_turns * 2 if args.max_turns else args.max_debate_depth,
         debate_prompt_file=args.debate_prompt_file,
         output_file=args.output,
         dry_run=args.dry_run
