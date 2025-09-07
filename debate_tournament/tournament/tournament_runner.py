@@ -8,15 +8,15 @@ from tournament.match import DebateMatch
 class TournamentRunner:
     """Manages and runs the debate tournament"""
 
-    def __init__(self, motions, debater1_type="true-mcts", debater1_max_depth=None,
-                 debater2_type="baseline", debater2_max_depth=None,
+    def __init__(self, motions, debater1_type="true-mcts", debater1_iterations=None,
+                 debater2_type="baseline", debater2_iterations=None,
                  debate_prompt_file=None, output_file=None, dry_run=False):
         self.motions = motions
         self.results = []
         self.debater1_type = debater1_type
-        self.debater1_max_depth = debater1_max_depth
+        self.debater1_iterations = debater1_iterations
         self.debater2_type = debater2_type
-        self.debater2_max_depth = debater2_max_depth
+        self.debater2_iterations = debater2_iterations
         self.debate_prompt_file = debate_prompt_file
         self.output_file = output_file
         self.output_lines = []
@@ -27,26 +27,25 @@ class TournamentRunner:
             from core.api_client import configure_api_client
             configure_api_client(dry_run=True)
 
-    def create_debater(self, debater_type, side, motion, max_depth):
+    def create_debater(self, debater_type, side, motion, iterations):
         if debater_type == "baseline":
             from debaters.baseline_debater import BaselineDebater
             return BaselineDebater(side, motion)
         elif debater_type == "prompt-mcts":
             from debaters.prompt_mcts_debater import PromptMCTSDebater
-            k = max_depth if max_depth is not None else None
+            k = iterations if iterations is not None else None
             return PromptMCTSDebater(side, motion, k=k)
         elif debater_type == "true-mcts":
             from debaters.true_mcts_debater import TrueMCTSDebater
-            # Pass max_depth as iterations to MCTSAlgorithm inside TrueMCTSDebater
-            # We will modify TrueMCTSDebater to accept iterations param
-            return TrueMCTSDebater(side, motion, iterations=max_depth, dry_run=self.dry_run)
+            # Pass iterations to MCTSAlgorithm inside TrueMCTSDebater
+            return TrueMCTSDebater(side, motion, iterations=iterations, dry_run=self.dry_run)
         else:
             raise ValueError(f"Unknown debater type: {debater_type}")
 
     def create_debater_pairs(self, motion):
         """Create all debater combinations for a motion"""
-        base_pro = self.create_debater(self.debater1_type, "pro", motion, self.debater1_max_depth)
-        base_con = self.create_debater(self.debater2_type, "con", motion, self.debater2_max_depth)
+        base_pro = self.create_debater(self.debater1_type, "pro", motion, self.debater1_iterations)
+        base_con = self.create_debater(self.debater2_type, "con", motion, self.debater2_iterations)
 
         return [
             (f"{self.debater1_type.upper()} vs {self.debater2_type.upper()}", base_pro, base_con),

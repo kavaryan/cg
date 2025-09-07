@@ -19,9 +19,9 @@ def main():
     parser = argparse.ArgumentParser(description="Run debate tournament with configurable parameters.")
     parser.add_argument("--debate-prompt-file", type=str, default=None, help="Path to debate prompt file")
     parser.add_argument("--debater1-type", type=str, choices=["baseline", "prompt-mcts", "true-mcts"], default="true-mcts", help="Type of debater 1")
-    parser.add_argument("--debater1-max-depth", type=int, default=None, help="Max depth or iterations for debater 1")
+    parser.add_argument("--debater1-iterations", type=int, default=None, help="Number of MCTS iterations for debater 1")
     parser.add_argument("--debater2-type", type=str, choices=["baseline", "prompt-mcts", "true-mcts"], default="baseline", help="Type of debater 2")
-    parser.add_argument("--debater2-max-depth", type=int, default=None, help="Max depth or iterations for debater 2")
+    parser.add_argument("--debater2-iterations", type=int, default=None, help="Number of MCTS iterations for debater 2")
     parser.add_argument("--output", type=str, default=None, help="Output file to store results")
     parser.add_argument("--dry-run", action="store_true", help="Run in dry-run mode with MCTS tree visualization (no LLM calls)")
     args = parser.parse_args()
@@ -43,9 +43,9 @@ def main():
     tournament = TournamentRunner(
         motions,
         debater1_type=args.debater1_type,
-        debater1_max_depth=args.debater1_max_depth,
+        debater1_iterations=args.debater1_iterations,
         debater2_type=args.debater2_type,
-        debater2_max_depth=args.debater2_max_depth,
+        debater2_iterations=args.debater2_iterations,
         debate_prompt_file=args.debate_prompt_file,
         output_file=args.output,
         dry_run=args.dry_run
