@@ -134,7 +134,7 @@ class MCTSAlgorithm:
 
         # If we have untried actions, expand one
         if node.untried_actions:
-            action = node.untried_actions[0]
+            action = node.untried_actions.pop(0)  # Remove the action we're expanding
 
             side_letter = "A" if node.side == "pro" else "B"
             new_state = node.state + [f"{side_letter}: {action}"]
@@ -219,7 +219,10 @@ class MCTSAlgorithm:
                         if expanded_leaf is not None:
                             leaf = expanded_leaf
                         if self.dry_run:
-                            print(f"  Expanded node with {len(leaf.children)} children")
+                            if expanded_leaf != leaf:
+                                print(f"  Expanded new child node (parent now has {len(leaf.children)} children)")
+                            else:
+                                print(f"  Node already fully expanded ({len(leaf.children)} children)")
 
                     reward = self.simulate(leaf)
                     if self.dry_run:

@@ -62,6 +62,5 @@ class MCTSNode:
             parent=self
         )
         self.children[action] = child
-        if action in self.untried_actions:
-            self.untried_actions.remove(action)
+        # Don't remove from untried_actions here since expand() already did it
         return child
