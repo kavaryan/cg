@@ -36,11 +36,13 @@ class TournamentRunner:
             return BaselineDebater(side, motion)
         elif debater_type == "prompt-mcts":
             from debaters.prompt_mcts_debater import PromptMCTSDebater
-            k = iterations if iterations is not None else None
+            k = iterations if iterations is not None else 3
             return PromptMCTSDebater(side, motion, k=k)
         elif debater_type == "true-mcts":
             from debaters.true_mcts_debater import TrueMCTSDebater
             # Pass iterations, max_rollout_depth and max_debate_depth to MCTSAlgorithm inside TrueMCTSDebater
+            iterations = iterations if iterations is not None else 20
+            max_rollout_depth = max_rollout_depth if max_rollout_depth is not None else 4
             return TrueMCTSDebater(side, motion, iterations=iterations, max_rollout_depth=max_rollout_depth, max_debate_depth=self.max_debate_depth, dry_run=self.dry_run)
         else:
             raise ValueError(f"Unknown debater type: {debater_type}")
