@@ -10,6 +10,10 @@ JUDGE_SYS = (
 class Judge:
     @staticmethod
     async def judge_async(text):
+        # Return mock judgment in dry-run mode
+        if api_client.dry_run:
+            return {"winner":"A","score_A":7,"score_B":6,"reason":"mock dry-run judgment"}
+            
         msgs=[{"role":"system","content":JUDGE_SYS},
               {"role":"user","content":text}]
         for _ in range(2):

@@ -43,6 +43,10 @@ def main():
         "This house believes that nuclear energy is the best solution to climate change"
     ]
 
+    # Configure API client for dry-run mode
+    from core.api_client import configure_api_client
+    configure_api_client(dry_run=args.dry_run)
+    
     # Run tournament with passed arguments
     tournament = TournamentRunner(
         motions,
