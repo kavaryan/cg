@@ -40,7 +40,19 @@ class APIClient:
             return "I maintain my position on this important issue."
     
     def run(self, coro):
-        return asyncio.get_event_loop().run_until_complete(coro)
+        if self.dry_run:
+            # In dry-run mode, we need to run the coroutine to get the mock result
+            # but we can do it synchronously since it's just returning a mock value
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(coro)
+                return result
+            finally:
+                loop.close()
+        else:
+            return asyncio.get_event_loop().run_until_complete(coro)
 
 # Global instance - will be reconfigured in main based on dry_run flag
 api_client = APIClient(os.environ.get("GROQ_API_KEY"), "qwen/qwen3-32b")

@@ -33,4 +33,6 @@ class Judge:
     
     @staticmethod
     def judge(text):
+        if api_client.dry_run:
+            return {"winner":"A","score_A":7,"score_B":6,"reason":"mock dry-run judgment"}
         return api_client.run(Judge.judge_async(text))
