@@ -4,10 +4,10 @@ from mcts.algorithm import MCTSAlgorithm
 class TrueMCTSDebater(BaseDebater):
     """True MCTS algorithm debater implementation"""
 
-    def __init__(self, side: str, motion: str, iterations: int = 20, max_rollout_depth: int = None, exploration_constant: float = None, dry_run: bool = False):
+    def __init__(self, side: str, motion: str, iterations: int = 20, max_rollout_depth: int = None, exploration_constant: float = None, max_debate_depth: int = 6, dry_run: bool = False):
         super().__init__(side, motion)
         self.mcts_algorithm = MCTSAlgorithm(side, motion, iterations=iterations,
-            max_rollout_depth=max_rollout_depth, exploration_constant=exploration_constant, dry_run=dry_run)
+            max_rollout_depth=max_rollout_depth, exploration_constant=exploration_constant, max_debate_depth=max_debate_depth, dry_run=dry_run)
 
     def __call__(self, hist, turn):
         try:

@@ -10,13 +10,14 @@ class TournamentRunner:
 
     def __init__(self, motions, debater1_type="true-mcts", debater1_iterations=None,
                  debater2_type="baseline", debater2_iterations=None,
-                 debate_prompt_file=None, output_file=None, dry_run=False):
+                 max_debate_depth=6, debate_prompt_file=None, output_file=None, dry_run=False):
         self.motions = motions
         self.results = []
         self.debater1_type = debater1_type
         self.debater1_iterations = debater1_iterations
         self.debater2_type = debater2_type
         self.debater2_iterations = debater2_iterations
+        self.max_debate_depth = max_debate_depth
         self.debate_prompt_file = debate_prompt_file
         self.output_file = output_file
         self.output_lines = []
@@ -37,8 +38,8 @@ class TournamentRunner:
             return PromptMCTSDebater(side, motion, k=k)
         elif debater_type == "true-mcts":
             from debaters.true_mcts_debater import TrueMCTSDebater
-            # Pass iterations to MCTSAlgorithm inside TrueMCTSDebater
-            return TrueMCTSDebater(side, motion, iterations=iterations, dry_run=self.dry_run)
+            # Pass iterations and max_debate_depth to MCTSAlgorithm inside TrueMCTSDebater
+            return TrueMCTSDebater(side, motion, iterations=iterations, max_debate_depth=self.max_debate_depth, dry_run=self.dry_run)
         else:
             raise ValueError(f"Unknown debater type: {debater_type}")
 
@@ -99,7 +100,7 @@ class TournamentRunner:
             
         print("\nSample debate – TRUE-MCTS vs BASELINE\n" + "-" * 60)
         try:
-            true_mcts_debater = TrueMCTSDebater("pro", self.motions[0])
+            true_mcts_debater = TrueMCTSDebater("pro", self.motions[0], max_debate_depth=self.max_debate_depth)
             baseline_debater = BaselineDebater("con", self.motions[0])
             verdict, sample_log = DebateMatch.play(self.motions[0], true_mcts_debater, baseline_debater)
             print("\n".join(sample_log))
