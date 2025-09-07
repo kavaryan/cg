@@ -22,8 +22,10 @@ class MCTSNode:
 
     def is_fully_expanded(self) -> bool:
         """Check if all possible actions have been tried"""
+        # If we haven't generated actions yet, we're not fully expanded
         if not self.children and not self.untried_actions:
             return False
+        # If we have untried actions, we're not fully expanded
         return len(self.untried_actions) == 0
 
     def best_child(self, exploration_weight: float) -> Optional['MCTSNode']:

@@ -116,12 +116,14 @@ class MCTSAlgorithm:
             node.is_terminal = True
             return node
 
+        # Generate actions if we haven't yet
         if not node.children and not node.untried_actions:
             node.untried_actions = self.generate_candidate_actions(node.state)
             if not node.untried_actions:
                 node.is_terminal = True
                 return node
 
+        # If we have untried actions, expand one
         if node.untried_actions:
             action = node.untried_actions[0]
 
@@ -132,6 +134,7 @@ class MCTSAlgorithm:
             child = node.add_child(action, new_state, next_side)
             return child
 
+        # If fully expanded, return the node itself
         return node
 
     def simulate(self, node: MCTSNode) -> float:
@@ -201,7 +204,9 @@ class MCTSAlgorithm:
                         leaf = root
 
                     if not leaf.is_terminal and len(leaf.state) < 6:
-                        leaf = self.expand(leaf)
+                        expanded_leaf = self.expand(leaf)
+                        if expanded_leaf is not None:
+                            leaf = expanded_leaf
                         if self.dry_run:
                             print(f"  Expanded node with {len(leaf.children)} children")
 
@@ -209,11 +214,14 @@ class MCTSAlgorithm:
                     if self.dry_run:
                         print(f"  Simulation reward: {reward:.3f}")
                     
-                    self.backpropagate(leaf, reward)
+                    if leaf is not None:
+                        self.backpropagate(leaf, reward)
 
                 except Exception as e:
                     if self.dry_run:
                         print(f"  Error in iteration {iteration}: {e}")
+                        import traceback
+                        traceback.print_exc()
                     else:
                         print(f"MCTS iteration {iteration} error: {e}")
                     continue
