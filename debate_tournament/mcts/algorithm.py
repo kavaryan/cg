@@ -160,7 +160,7 @@ class MCTSAlgorithm:
 
     def print_tree_structure(self, node: MCTSNode, prefix: str = "", is_last: bool = True, depth: int = 0):
         """Print the MCTS tree structure with numbered nodes"""
-        if depth > 3:  # Limit depth for readability
+        if depth > 6:  # Limit depth for readability (increased from 3)
             return
             
         # Create the tree visualization
