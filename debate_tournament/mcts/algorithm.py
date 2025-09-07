@@ -23,9 +23,9 @@ class MCTSAlgorithm:
         if self.dry_run:
             # Return mock candidate actions for dry-run mode
             mock_candidates = [
-                f"Mock argument {len(state)+1}.{i+1} for {self.side} side",
-                f"Evidence-based point {len(state)+1}.{i+1} supporting our position", 
-                f"Counter-argument {len(state)+1}.{i+1} addressing opposition concerns"
+                f"Mock argument {len(state)+1}.1 for {self.side} side",
+                f"Evidence-based point {len(state)+1}.2 supporting our position", 
+                f"Counter-argument {len(state)+1}.3 addressing opposition concerns"
             ]
             return mock_candidates[:num_candidates]
         
