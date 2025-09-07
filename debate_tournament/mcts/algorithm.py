@@ -13,8 +13,8 @@ class MCTSAlgorithm:
         self.side = side
         self.motion = motion
         self.iterations = iterations
-        self.max_rollout_depth = max_rollout_depth
-        self.exploration_constant = exploration_constant
+        self.max_rollout_depth = max_rollout_depth if max_rollout_depth is not None else 4
+        self.exploration_constant = exploration_constant if exploration_constant is not None else 1.414
         self.dry_run = dry_run
         self.tree_log = []
 
