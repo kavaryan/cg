@@ -84,7 +84,8 @@ class MCTSAlgorithm:
 
     def simulate_random_playout(self, state: List[str], current_side: str, depth: int = 0) -> float:
         """Simulate a random playout from the current state"""
-        if depth >= self.max_rollout_depth or len(state) >= self.max_debate_depth:
+        # Use max_rollout_depth for simulation depth, not max_debate_depth
+        if depth >= self.max_rollout_depth:
             return self.evaluate_state(state)
 
         try:
@@ -118,8 +119,8 @@ class MCTSAlgorithm:
 
     def expand(self, node: MCTSNode) -> MCTSNode:
         """Expansion phase: add new child node"""
-        if node.is_terminal or len(node.state) >= self.max_debate_depth:
-            node.is_terminal = True
+        # Allow deeper expansion during search phase - don't limit by max_debate_depth here
+        if node.is_terminal:
             return node
 
         # Generate actions if we haven't yet
@@ -161,7 +162,7 @@ class MCTSAlgorithm:
 
     def print_tree_structure(self, node: MCTSNode, prefix: str = "", is_last: bool = True, depth: int = 0):
         """Print the MCTS tree structure with numbered nodes"""
-        if depth > 6:  # Limit depth for readability (increased from 3)
+        if depth > 10:  # Limit depth for readability - show deeper trees
             return
             
         # Create the tree visualization
@@ -211,7 +212,7 @@ class MCTSAlgorithm:
                     if leaf is None:
                         leaf = root
 
-                    if not leaf.is_terminal and len(leaf.state) < self.max_debate_depth:
+                    if not leaf.is_terminal:
                         expanded_leaf = self.expand(leaf)
                         if expanded_leaf is not None:
                             leaf = expanded_leaf
