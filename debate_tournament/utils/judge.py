@@ -1,5 +1,6 @@
 import re
 import json
+import random
 from core.api_client import api_client
 
 JUDGE_SYS = (
@@ -12,7 +13,10 @@ class Judge:
     async def judge_async(text):
         # Return mock judgment in dry-run mode
         if api_client.dry_run:
-            return {"winner":"A","score_A":7,"score_B":6,"reason":"mock dry-run judgment"}
+            winner = random.choice(["A", "B", "draw"])
+            score_a = random.randint(3, 10)
+            score_b = random.randint(3, 10)
+            return {"winner":winner,"score_A":score_a,"score_B":score_b,"reason":"mock dry-run judgment"}
             
         msgs=[{"role":"system","content":JUDGE_SYS},
               {"role":"user","content":text}]
@@ -34,5 +38,8 @@ class Judge:
     @staticmethod
     def judge(text):
         if api_client.dry_run:
-            return {"winner":"A","score_A":7,"score_B":6,"reason":"mock dry-run judgment"}
+            winner = random.choice(["A", "B", "draw"])
+            score_a = random.randint(3, 10)
+            score_b = random.randint(3, 10)
+            return {"winner":winner,"score_A":score_a,"score_B":score_b,"reason":"mock dry-run judgment"}
         return api_client.run(Judge.judge_async(text))
