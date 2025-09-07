@@ -15,6 +15,11 @@ class MCTSNode:
     untried_actions: List[str] = field(default_factory=list)
     is_terminal: bool = False
 
+    @property
+    def value(self) -> float:
+        """Average reward for this node"""
+        return self.total_reward / self.visits if self.visits > 0 else 0.0
+
     def is_fully_expanded(self) -> bool:
         """Check if all possible actions have been tried"""
         if not self.children and not self.untried_actions:
@@ -31,17 +36,20 @@ class MCTSNode:
                 return float('inf')
 
             exploitation = child.total_reward / child.visits
+            if self.visits <= 0:
+                return exploitation
             exploration = exploration_weight * math.sqrt(math.log(self.visits) / child.visits)
             return exploitation + exploration
 
-        return max(self.children.values(), key=ucb1_score)
+        try:
+            return max(self.children.values(), key=ucb1_score)
+        except (ValueError, ZeroDivisionError):
+            return list(self.children.values())[0] if self.children else None
 
     def update(self, reward: float):
-        """Backpropagate reward up the tree"""
+        """Update this node's statistics"""
         self.visits += 1
         self.total_reward += reward
-        if self.parent:
-            self.parent.update(-reward)
 
     def add_child(self, action: str, child_state: List[str], child_side: str) -> 'MCTSNode':
         """Add a new child node"""

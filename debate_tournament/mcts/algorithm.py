@@ -20,6 +20,15 @@ class MCTSAlgorithm:
 
     def generate_candidate_actions(self, state: List[str], num_candidates: int = 3) -> List[str]:
         """Generate candidate debate responses"""
+        if self.dry_run:
+            # Return mock candidate actions for dry-run mode
+            mock_candidates = [
+                f"Mock argument {len(state)+1}.{i+1} for {self.side} side",
+                f"Evidence-based point {len(state)+1}.{i+1} supporting our position", 
+                f"Counter-argument {len(state)+1}.{i+1} addressing opposition concerns"
+            ]
+            return mock_candidates[:num_candidates]
+        
         candidates = []
         for attempt in range(num_candidates * 2):
             try:
@@ -73,11 +82,15 @@ class MCTSAlgorithm:
             return self.evaluate_state(state)
 
         try:
-            response = api_client.run(api_client.gchat(
-                debater_prompt(current_side, self.motion, state),
-                temp=1.5,
-                max_tok=40
-            ))
+            if self.dry_run:
+                # Mock response for dry-run mode
+                response = f"Mock response for {current_side} at depth {depth}"
+            else:
+                response = api_client.run(api_client.gchat(
+                    debater_prompt(current_side, self.motion, state),
+                    temp=1.5,
+                    max_tok=40
+                ))
 
             side_letter = "A" if current_side == "pro" else "B"
             new_state = state + [f"{side_letter}: {response}"]
@@ -130,7 +143,12 @@ class MCTSAlgorithm:
 
     def backpropagate(self, node: MCTSNode, reward: float):
         """Backpropagation phase: update node values"""
-        node.update(reward)
+        current = node
+        multiplier = 1.0
+        while current is not None:
+            current.update(reward * multiplier)
+            current = current.parent
+            multiplier *= -1  # Alternate reward for opponent
 
     def print_tree_structure(self, node: MCTSNode, prefix: str = "", is_last: bool = True, depth: int = 0):
         """Print the MCTS tree structure with numbered nodes"""
