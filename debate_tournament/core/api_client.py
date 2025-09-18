@@ -1,5 +1,6 @@
 import asyncio
 import os
+import traceback
 import litellm
 
 class APIClient:
@@ -38,6 +39,8 @@ class APIClient:
             return rsp.choices[0].message.content.strip()
         except Exception as e:
             print(f"API Error: {e}")
+            print("Full traceback:")
+            traceback.print_exc()
             return "I maintain my position on this important issue."
     
     def run(self, coro):
