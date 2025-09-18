@@ -63,4 +63,7 @@ api_client = APIClient(os.environ.get("GROQ_API_KEY", "dummy"), "qwen/qwen3-32b"
 def configure_api_client(dry_run: bool = False):
     """Reconfigure the global API client for dry-run mode"""
     global api_client
-    api_client = APIClient(os.environ.get("GROQ_API_KEY"), "qwen/qwen3-32b", dry_run=dry_run)
+    if dry_run:
+        api_client = APIClient("dummy", "qwen/qwen3-32b", dry_run=True)
+    else:
+        api_client = APIClient(os.environ.get("GROQ_API_KEY"), "qwen/qwen3-32b", dry_run=False)
