@@ -9,9 +9,9 @@ except ImportError:
 
 import argparse
 from tournament.tournament_runner import TournamentRunner
+from mcts.algorithm import EXPLORATION_CONSTANT
 
 MCTS_ITERATIONS = 20
-EXPLORATION_CONSTANT = 1.414
 MAX_ROLLOUT_DEPTH = 4
 MCTS_TEMP = 1.0
 
@@ -56,6 +56,7 @@ def main():
         debater2_type=args.debater2_type,
         debater2_iterations=args.debater2_iterations,
         debater2_max_rollout_depth=args.debater2_max_rollout_depth,
+        exploration_constant=EXPLORATION_CONSTANT,
         max_debate_depth=args.max_turns * 2 if args.max_turns else args.max_debate_depth,
         debate_prompt_file=args.debate_prompt_file,
         output_file=args.output,
