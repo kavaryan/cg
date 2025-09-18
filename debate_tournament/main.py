@@ -67,11 +67,11 @@ def main():
 
     # Print MCTS configuration
     print(f"\n===== MCTS Configuration =====")
-    print(f"MCTS Iterations per move: {MCTS_ITERATIONS}")
+    print(f"MCTS Iterations per move: {args.debater1_iterations}")
     print(f"Exploration Constant (C): {EXPLORATION_CONSTANT}")
-    print(f"Max Rollout Depth: {MAX_ROLLOUT_DEPTH}")
+    print(f"Max Rollout Depth: {args.debater1_max_rollout_depth}")
     print(f"Candidate Actions per Node: 3")
-    print(f"Total API calls per TRUE-MCTS move: ~{MCTS_ITERATIONS + 15} (search + evaluation)")
+    print(f"Total API calls per TRUE-MCTS move: ~{args.debater1_iterations + 15} (search + evaluation)")
 
 if __name__ == "__main__":
     main()
