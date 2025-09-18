@@ -5,16 +5,19 @@ from utils.prompts import debater_prompt
 from utils.scoring import score_sentence
 from core.api_client import api_client
 
+EXPLORATION_CONSTANT = 1.414
+
+
 class MCTSAlgorithm:
     """True MCTS algorithm implementation for debate"""
 
     def __init__(self, side: str, motion: str,
-            iterations: int = 20, max_rollout_depth: int = 4, exploration_constant: float = 1.414, max_debate_depth: int = 6, dry_run: bool = False):
+            iterations: int, max_rollout_depth: int, max_debate_depth: int, exploration_constant: float = None, dry_run: bool = False):
         self.side = side
         self.motion = motion
         self.iterations = iterations
-        self.max_rollout_depth = max_rollout_depth if max_rollout_depth is not None else 4
-        self.exploration_constant = exploration_constant if exploration_constant is not None else 1.414
+        self.max_rollout_depth = max_rollout_depth
+        self.exploration_constant = exploration_constant if exploration_constant is not None else EXPLORATION_CONSTANT
         self.max_debate_depth = max_debate_depth
         self.dry_run = dry_run
         self.tree_log = []
