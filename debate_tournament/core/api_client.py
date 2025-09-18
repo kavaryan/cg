@@ -4,8 +4,9 @@ import litellm
 
 class APIClient:
     def __init__(self, api_key: str, model_name: str, dry_run: bool = False):
-        # Set the API key for litellm
-        litellm.api_key = api_key
+        # Set the API key for litellm only if not in dry-run mode
+        if not dry_run:
+            litellm.api_key = api_key
         self.model_name = model_name
         self.dry_run = dry_run
         self._mock_responses = [
