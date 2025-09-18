@@ -43,7 +43,6 @@ class APIClient:
         if self.dry_run:
             # In dry-run mode, we need to run the coroutine to get the mock result
             # but we can do it synchronously since it's just returning a mock value
-            import asyncio
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
