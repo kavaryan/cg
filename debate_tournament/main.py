@@ -31,10 +31,8 @@ def main():
     args = parser.parse_args()
 
     # Setup
-    
     random.seed(42)
-    # setup_environment()
-    
+
     # Define debate motions
     motions = [
         "This house believes that artificial intelligence will do more harm than good",
@@ -46,7 +44,10 @@ def main():
     # Configure API client for dry-run mode
     from core.api_client import configure_api_client
     configure_api_client(dry_run=args.dry_run)
-    
+
+    # Calculate max debate depth - prioritize max_turns if specified, otherwise use max_debate_depth
+    max_debate_depth = args.max_turns * 2 if args.max_turns is not None else args.max_debate_depth
+
     # Run tournament with passed arguments
     tournament = TournamentRunner(
         motions,
@@ -57,7 +58,7 @@ def main():
         debater2_iterations=args.debater2_iterations,
         debater2_max_rollout_depth=args.debater2_max_rollout_depth,
         exploration_constant=EXPLORATION_CONSTANT,
-        max_debate_depth=args.max_turns * 2 if args.max_turns else args.max_debate_depth,
+        max_debate_depth=max_debate_depth,
         debate_prompt_file=args.debate_prompt_file,
         output_file=args.output,
         dry_run=args.dry_run

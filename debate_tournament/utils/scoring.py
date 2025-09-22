@@ -4,7 +4,7 @@ from utils.prompts import scorer_prompt
 
 def score_sentence(sent, side, motion, context=""):
     try:
-        out = api_client.run(api_client.gchat(scorer_prompt(sent, side, motion, context), temp=0, max_tok=8))
+        out = api_client.run(api_client.gchat(scorer_prompt(sent, side, motion, context), temp=0, max_tok=8, call_type='scoring'))
         m = re.search(r"\d+", out)
         return int(m.group()) if m else 5
     except:

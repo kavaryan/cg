@@ -22,14 +22,35 @@ class APIClient:
         ]
         self._response_counter = 0
 
-    async def gchat(self, messages, temp=0.8, max_tok=256):
+        # API call tracking
+        self.reset_call_counters()
+
+    def reset_call_counters(self):
+        """Reset all API call counters"""
+        self.call_counters = {
+            'inference': 0,  # For generating responses/debate moves
+            'scoring': 0,    # For scoring individual sentences
+            'judge': 0       # For final debate evaluation
+        }
+
+    def get_call_statistics(self):
+        """Get current API call statistics"""
+        return self.call_counters.copy()
+
+    async def gchat(self, messages, temp=0.8, max_tok=256, call_type='inference'):
+        """Make a chat completion call with tracking"""
         if self.dry_run:
             # Return mock response for dry-run mode
             response = self._mock_responses[self._response_counter % len(self._mock_responses)]
             self._response_counter += 1
+            # Don't count dry-run calls
             return response
-            
+
         try:
+            # Track the API call
+            if call_type in self.call_counters:
+                self.call_counters[call_type] += 1
+
             rsp = await litellm.acompletion(
                 model=f"groq/{self.model_name}",
                 messages=messages,
@@ -42,20 +63,16 @@ class APIClient:
             print("Full traceback:")
             traceback.print_exc()
             return "I maintain my position on this important issue."
-    
+
     def run(self, coro):
-        if self.dry_run:
-            # In dry-run mode, we need to run the coroutine to get the mock result
-            # but we can do it synchronously since it's just returning a mock value
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                result = loop.run_until_complete(coro)
-                return result
-            finally:
-                loop.close()
-        else:
-            return asyncio.get_event_loop().run_until_complete(coro)
+        """Run a coroutine, handling event loop properly"""
+        try:
+            # Try to get the current event loop
+            loop = asyncio.get_running_loop()
+            return loop.run_until_complete(coro)
+        except RuntimeError:
+            # No event loop is running, create a new one
+            return asyncio.run(coro)
 
 # Global instance - will be reconfigured in main based on dry_run flag
 api_client = APIClient(os.environ.get("GROQ_API_KEY", "dummy"), "qwen/qwen3-32b", dry_run=True)

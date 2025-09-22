@@ -1,5 +1,7 @@
 import re
-from typing import List
+import math
+import random
+from typing import List, Optional
 from mcts.node import MCTSNode
 from utils.prompts import debater_prompt
 from utils.scoring import score_sentence
@@ -12,13 +14,13 @@ class MCTSAlgorithm:
     """True MCTS algorithm implementation for debate"""
 
     def __init__(self, side: str, motion: str,
-            iterations: int, max_rollout_depth: int, max_debate_depth: int, exploration_constant: float = None, dry_run: bool = False):
+            iterations: int, max_rollout_depth: int, max_debate_depth: int, exploration_constant: Optional[float] = None, dry_run: bool = False):
         self.side = side
         self.motion = motion
         self.iterations = iterations
         self.max_rollout_depth = max_rollout_depth
+        self.max_debate_depth = max_debate_depth  # Now properly used
         self.exploration_constant = exploration_constant if exploration_constant is not None else EXPLORATION_CONSTANT
-        self.max_debate_depth = max_debate_depth
         self.dry_run = dry_run
         self.tree_log = []
 
@@ -28,28 +30,34 @@ class MCTSAlgorithm:
             # Return mock candidate actions for dry-run mode
             mock_candidates = [
                 f"Mock argument {len(state)+1}.1 for {self.side} side",
-                f"Evidence-based point {len(state)+1}.2 supporting our position", 
+                f"Evidence-based point {len(state)+1}.2 supporting our position",
                 f"Counter-argument {len(state)+1}.3 addressing opposition concerns"
             ]
             return mock_candidates[:num_candidates]
-        
+
         candidates = []
-        for attempt in range(num_candidates * 2):
+        max_attempts = num_candidates * 5  # Increased attempts to prevent infinite loops
+        attempts = 0
+
+        while len(candidates) < num_candidates and attempts < max_attempts:
             try:
                 response = api_client.run(api_client.gchat(
                     debater_prompt(self.side, self.motion, state),
                     temp=1.2,
                     max_tok=40
                 ))
-                if response and response not in candidates and len(response.strip()) > 0:
+                if response and response.strip() not in candidates and len(response.strip()) > 0:
                     candidates.append(response.strip())
-                    if len(candidates) >= num_candidates:
-                        break
+                attempts += 1
             except Exception as e:
+                attempts += 1
+                if not self.dry_run:
+                    print(f"Error generating candidate {attempts}: {e}")
                 continue
 
-        if not candidates:
-            candidates = ["I maintain my position on this important issue."]
+        # Fallback if no candidates generated
+        while len(candidates) < num_candidates:
+            candidates.append(f"I maintain my position on this important issue (attempt {len(candidates)+1})")
 
         return candidates
 
@@ -60,7 +68,6 @@ class MCTSAlgorithm:
 
         if self.dry_run:
             # Return mock evaluation for dry-run mode
-            import random
             return random.uniform(-0.5, 0.5)
 
         try:
@@ -68,27 +75,37 @@ class MCTSAlgorithm:
                 last_statement = state[-1]
                 clean_statement = re.sub(r'^[AB]: ', '', last_statement)
 
+                # Determine which side made the last statement
                 last_index = len(state) - 1
-                is_our_statement = (last_index % 2 == 0 and self.side == "pro") or (last_index % 2 == 1 and self.side == "con")
+                last_side = "pro" if last_index % 2 == 0 else "con"
 
-                if is_our_statement:
+                # Evaluate based on whether it's our statement or opponent's
+                if last_side == self.side:
+                    # Our statement - positive evaluation
                     context = "\n".join(state[-4:]) if len(state) > 4 else "\n".join(state)
                     score = score_sentence(clean_statement, self.side, self.motion, context)
-                    return (score - 5.0) / 5.0
+                    return max(-1.0, min(1.0, (score - 5.0) / 5.0))  # Clamp to [-1, 1]
                 else:
+                    # Opponent's statement - negative evaluation
                     opponent_side = "con" if self.side == "pro" else "pro"
                     context = "\n".join(state[-4:]) if len(state) > 4 else "\n".join(state)
                     score = score_sentence(clean_statement, opponent_side, self.motion, context)
-                    return -(score - 5.0) / 5.0
+                    return max(-1.0, min(1.0, -(score - 5.0) / 5.0))  # Clamp to [-1, 1]
 
             return 0.0
-        except:
+        except Exception as e:
+            if not self.dry_run:
+                print(f"State evaluation error: {e}")
             return 0.0
 
     def simulate_random_playout(self, state: List[str], current_side: str, depth: int = 0) -> float:
         """Simulate a random playout from the current state"""
         # Use max_rollout_depth for simulation depth, not max_debate_depth
         if depth >= self.max_rollout_depth:
+            return self.evaluate_state(state)
+
+        # Check if we've exceeded max debate depth
+        if len(state) >= self.max_debate_depth * 2:
             return self.evaluate_state(state)
 
         try:
@@ -107,7 +124,9 @@ class MCTSAlgorithm:
             next_side = "con" if current_side == "pro" else "pro"
 
             return self.simulate_random_playout(new_state, next_side, depth + 1)
-        except:
+        except Exception as e:
+            if not self.dry_run:
+                print(f"Simulation error: {e}")
             return self.evaluate_state(state)
 
     def select(self, node: MCTSNode) -> MCTSNode:
@@ -120,11 +139,15 @@ class MCTSAlgorithm:
             current = best_child
         return current if current is not None else node
 
-    def expand(self, node: MCTSNode) -> MCTSNode:
+    def expand(self, node: MCTSNode) -> Optional[MCTSNode]:
         """Expansion phase: add new child node"""
-        # Allow deeper expansion during search phase - don't limit by max_debate_depth here
-        # Only stop expansion if we've reached a very deep level to prevent infinite expansion
-        if node.is_terminal or len(node.state) >= 50:  # Much higher limit for search
+        # Check if we've reached max debate depth
+        if len(node.state) >= self.max_debate_depth * 2:
+            node.is_terminal = True
+            return node
+
+        # Prevent infinite expansion during search
+        if node.is_terminal or len(node.state) >= 50:
             node.is_terminal = True
             return node
 
@@ -153,7 +176,9 @@ class MCTSAlgorithm:
         """Simulation phase: random playout"""
         try:
             return self.simulate_random_playout(node.state, node.side)
-        except:
+        except Exception as e:
+            if not self.dry_run:
+                print(f"Simulation error: {e}")
             return 0.0
 
     def backpropagate(self, node: MCTSNode, reward: float):
@@ -169,20 +194,20 @@ class MCTSAlgorithm:
         """Print the MCTS tree structure with numbered nodes"""
         if depth > 15:  # Show even deeper trees to see the full exploration
             return
-            
+
         # Create the tree visualization
         connector = "└── " if is_last else "├── "
         node_info = f"visits={node.visits}, value={node.value:.3f}"
-        
+
         if hasattr(node, 'action') and node.action:
             action_preview = node.action[:30] + "..." if len(node.action) > 30 else node.action
             print(f"{prefix}{connector}[{node_info}] \"{action_preview}\"")
         else:
             print(f"{prefix}{connector}[ROOT] {node_info}")
-        
+
         # Prepare prefix for children
         child_prefix = prefix + ("    " if is_last else "│   ")
-        
+
         # Print children
         children_list = list(node.children.items())
         for i, (action, child) in enumerate(children_list):
@@ -198,9 +223,10 @@ class MCTSAlgorithm:
             print(f"Current state: {len(root_state)} moves")
             print(f"Iterations: {self.iterations}")
             print(f"Max rollout depth: {self.max_rollout_depth}")
+            print(f"Max debate depth: {self.max_debate_depth}")
             print(f"Exploration constant: {self.exploration_constant}")
             print("-" * 50)
-        
+
         try:
             root = MCTSNode(
                 state=root_state,
@@ -212,7 +238,7 @@ class MCTSAlgorithm:
                 try:
                     if self.dry_run:
                         print(f"\nIteration {iteration + 1}:")
-                    
+
                     leaf = self.select(root)
                     if leaf is None:
                         leaf = root
@@ -230,7 +256,7 @@ class MCTSAlgorithm:
                     reward = self.simulate(leaf)
                     if self.dry_run:
                         print(f"  Simulation reward: {reward:.3f} (max depth: {self.max_rollout_depth})")
-                    
+
                     if leaf is not None:
                         self.backpropagate(leaf, reward)
 
@@ -276,10 +302,12 @@ class MCTSAlgorithm:
         except Exception as e:
             if self.dry_run:
                 print(f"MCTS search error: {e}")
+                import traceback
+                traceback.print_exc()
             else:
                 print(f"MCTS search error: {e}")
             try:
                 candidates = self.generate_candidate_actions(root_state, 1)
                 return candidates[0] if candidates else "I maintain my position on this important issue."
-            except:
+            except Exception:
                 return "I maintain my position on this important issue."

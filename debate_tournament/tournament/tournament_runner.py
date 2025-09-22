@@ -10,7 +10,7 @@ class TournamentRunner:
 
     def __init__(self, motions, debater1_type="true-mcts", debater1_iterations=None, debater1_max_rollout_depth=None,
                  debater2_type="baseline", debater2_iterations=None, debater2_max_rollout_depth=None,
-                 max_debate_depth=6, debate_prompt_file=None, output_file=None, dry_run=False):
+                 max_debate_depth=6, debate_prompt_file=None, output_file=None, dry_run=False, exploration_constant=None):
         self.motions = motions
         self.results = []
         self.debater1_type = debater1_type
@@ -24,7 +24,8 @@ class TournamentRunner:
         self.output_file = output_file
         self.output_lines = []
         self.dry_run = dry_run
-        
+        self.exploration_constant = exploration_constant
+
         # Configure API client for dry-run mode
         if dry_run:
             from core.api_client import configure_api_client
@@ -43,7 +44,9 @@ class TournamentRunner:
             # Pass iterations, max_rollout_depth and max_debate_depth to MCTSAlgorithm inside TrueMCTSDebater
             iterations = iterations if iterations is not None else 20
             max_rollout_depth = max_rollout_depth if max_rollout_depth is not None else 4
-            return TrueMCTSDebater(side, motion, iterations=iterations, max_rollout_depth=max_rollout_depth, max_debate_depth=self.max_debate_depth, dry_run=self.dry_run)
+            exploration_constant = self.exploration_constant if self.exploration_constant is not None else 1.414
+            return TrueMCTSDebater(side, motion, iterations=iterations, max_rollout_depth=max_rollout_depth,
+                                 max_debate_depth=self.max_debate_depth, exploration_constant=exploration_constant, dry_run=self.dry_run)
         else:
             raise ValueError(f"Unknown debater type: {debater_type}")
 
@@ -62,7 +65,7 @@ class TournamentRunner:
             print("=== DRY-RUN MODE: MCTS Tree Visualization ===")
             num_matches = 1  # Only run one match in dry-run mode
             sleep_sec = 0  # No sleep needed in dry-run
-            
+
         for motion in self.motions:
             pairs = self.create_debater_pairs(motion)
 
@@ -101,10 +104,12 @@ class TournamentRunner:
             print("\n=== DRY-RUN COMPLETE ===")
             print("MCTS tree search visualization shown above.")
             return
-            
+
         print("\nSample debate – TRUE-MCTS vs BASELINE\n" + "-" * 60)
         try:
-            true_mcts_debater = TrueMCTSDebater("pro", self.motions[0], max_debate_depth=self.max_debate_depth)
+            exploration_constant = self.exploration_constant if self.exploration_constant is not None else 1.414
+            true_mcts_debater = TrueMCTSDebater("pro", self.motions[0], iterations=20, max_rollout_depth=4,
+                                              max_debate_depth=self.max_debate_depth, exploration_constant=exploration_constant, dry_run=self.dry_run)
             baseline_debater = BaselineDebater("con", self.motions[0])
             verdict, sample_log = DebateMatch.play(self.motions[0], true_mcts_debater, baseline_debater)
             print("\n".join(sample_log))

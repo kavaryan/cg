@@ -40,8 +40,17 @@ class MCTSNode:
             exploitation = child.total_reward / child.visits
             if self.visits <= 0:
                 return exploitation
-            exploration = exploration_weight * math.sqrt(math.log(self.visits) / child.visits)
-            return exploitation + exploration
+
+            # Prevent division by zero and handle edge cases
+            if child.visits == 0:
+                return exploitation
+
+            try:
+                exploration = exploration_weight * math.sqrt(math.log(self.visits) / child.visits)
+                return exploitation + exploration
+            except (ValueError, ZeroDivisionError):
+                # Fallback to just exploitation if math operations fail
+                return exploitation
 
         try:
             return max(self.children.values(), key=ucb1_score)
