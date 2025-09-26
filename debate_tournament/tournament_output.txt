@@ -1,0 +1,18 @@
+===== Tournament Results =====
+This house believes that artificial in… | TRUE-MCTS vs PROMPT-MCTS | 50.00%
+This house believes that social media … | TRUE-MCTS vs PROMPT-MCTS | 66.67%
+This house believes that remote work i… | TRUE-MCTS vs PROMPT-MCTS | 16.67%
+This house believes that nuclear energ… | TRUE-MCTS vs PROMPT-MCTS | 16.67%
+
+===== Sample Debate =====
+A: I believe this argument has strong merit.
+B: There are important counterarguments to consider.
+A: This approach offers the most practical solution.
+B: The evidence clearly supports this position.
+A: This perspective overlooks key considerations.
+B: The evidence clearly supports this position.
+
+Judge: {'winner': 'A', 'score_A': 10, 'score_B': 9, 'reason': 'mock dry-run judgment'}
+
+===== API Call Statistics =====
+API Calls: {'inference': 0, 'scoring': 0, 'judge': 0}

@@ -35,25 +35,43 @@ class MCTSAlgorithm:
             ]
             return mock_candidates[:num_candidates]
 
-        candidates = []
-        max_attempts = num_candidates * 5  # Increased attempts to prevent infinite loops
-        attempts = 0
+        # Create batch requests for candidate generation
+        prompt_messages = debater_prompt(self.side, self.motion, state)
+        batch_size = num_candidates * 2  # Generate extra to account for duplicates/empty
+        requests = [{'messages': prompt_messages, 'temp': 1.2, 'max_tok': 40} for _ in range(batch_size)]
 
-        while len(candidates) < num_candidates and attempts < max_attempts:
-            try:
-                response = api_client.run(api_client.gchat(
-                    debater_prompt(self.side, self.motion, state),
-                    temp=1.2,
-                    max_tok=40
-                ))
-                if response and response.strip() not in candidates and len(response.strip()) > 0:
-                    candidates.append(response.strip())
-                attempts += 1
-            except Exception as e:
-                attempts += 1
-                if not self.dry_run:
-                    print(f"Error generating candidate {attempts}: {e}")
-                continue
+        try:
+            responses = api_client.run(api_client.batch_gchat(requests, call_type='inference'))
+        except Exception as e:
+            if not self.dry_run:
+                print(f"Batch error generating candidates: {e}")
+            # Fallback to individual calls
+            candidates = []
+            for _ in range(num_candidates):
+                try:
+                    response = api_client.run(api_client.gchat(prompt_messages, temp=1.2, max_tok=40, call_type='inference'))
+                    if response and response.strip():
+                        candidates.append(response.strip())
+                except Exception as e2:
+                    if not self.dry_run:
+                        print(f"Error generating candidate: {e2}")
+                    continue
+            # Fallback if no candidates generated
+            while len(candidates) < num_candidates:
+                candidates.append(f"I maintain my position on this important issue (attempt {len(candidates)+1})")
+            return candidates
+
+        # Process responses, remove duplicates and empty
+        candidates = []
+        for response in responses:
+            if response and response.strip() and response.strip() not in candidates:
+                candidates.append(response.strip())
+            if len(candidates) >= num_candidates:
+                break
+
+        # Fallback if not enough candidates
+        while len(candidates) < num_candidates:
+            candidates.append(f"I maintain my position on this important issue (attempt {len(candidates)+1})")
 
         # Fallback if no candidates generated
         while len(candidates) < num_candidates:

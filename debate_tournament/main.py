@@ -1,4 +1,5 @@
 import random
+import os
 
 try:
     import nest_asyncio
@@ -41,9 +42,10 @@ def main():
         "This house believes that nuclear energy is the best solution to climate change"
     ]
 
-    # Configure API client for dry-run mode
+    # Configure API client for dry-run mode or vLLM
     from core.api_client import configure_api_client
-    configure_api_client(dry_run=args.dry_run)
+    base_url = os.environ.get('VLLM_BASE_URL')
+    configure_api_client(dry_run=args.dry_run, base_url=base_url)
 
     # Calculate max debate depth - prioritize max_turns if specified, otherwise use max_debate_depth
     max_debate_depth = args.max_turns * 2 if args.max_turns is not None else args.max_debate_depth

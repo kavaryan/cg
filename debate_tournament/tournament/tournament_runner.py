@@ -90,7 +90,23 @@ class TournamentRunner:
 
         if self.output_file and not self.dry_run:
             with open(self.output_file, "w") as f:
+                f.write("===== Tournament Results =====\n")
                 f.write("\n".join(self.output_lines))
+                f.write("\n\n===== Sample Debate =====\n")
+                try:
+                    exploration_constant = self.exploration_constant if self.exploration_constant is not None else 1.414
+                    true_mcts_debater = TrueMCTSDebater("pro", self.motions[0], iterations=20, max_rollout_depth=4,
+                                                      max_debate_depth=self.max_debate_depth, exploration_constant=exploration_constant, dry_run=self.dry_run)
+                    baseline_debater = BaselineDebater("con", self.motions[0])
+                    verdict, sample_log = DebateMatch.play(self.motions[0], true_mcts_debater, baseline_debater)
+                    f.write("\n".join(sample_log))
+                    f.write(f"\n\nJudge: {verdict}")
+                except Exception as e:
+                    f.write(f"Sample debate error: {e}")
+                f.write("\n\n===== API Call Statistics =====\n")
+                from core.api_client import api_client
+                stats = api_client.get_call_statistics()
+                f.write(f"API Calls: {stats}")
 
     def print_results(self):
         """Display tournament results"""
