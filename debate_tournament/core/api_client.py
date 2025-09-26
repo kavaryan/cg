@@ -115,7 +115,8 @@ class APIClient:
             return asyncio.run(coro)
 
 # Global instance - will be reconfigured in main based on dry_run flag
-api_client = APIClient(os.environ.get("GROQ_API_KEY", "dummy"), "Qwen/Qwen2.5-1.5B-Instruct", base_url=os.environ.get("VLLM_BASE_URL"), dry_run=True)
+base_url = os.environ.get("VLLM_BASE_URL")
+api_client = APIClient(os.environ.get("GROQ_API_KEY", "dummy"), "Qwen/Qwen2.5-1.5B-Instruct", base_url=base_url, dry_run=not bool(base_url))
 
 def configure_api_client(dry_run: bool = False, base_url: str = None):
     """Reconfigure the global API client for dry-run mode or local vLLM"""

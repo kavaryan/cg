@@ -45,6 +45,9 @@ def main():
     # Configure API client for dry-run mode or vLLM
     from core.api_client import configure_api_client
     base_url = os.environ.get('VLLM_BASE_URL')
+    if not base_url and not args.dry_run:
+        print("Warning: VLLM_BASE_URL not set and not in dry-run mode. Running in dry-run mode with mock responses.")
+        args.dry_run = True
     configure_api_client(dry_run=args.dry_run, base_url=base_url)
 
     # Calculate max debate depth - prioritize max_turns if specified, otherwise use max_debate_depth
